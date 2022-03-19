@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>rilakuma</title>
+
+<button onclick="jump();">ジャンプ!</button>
+<button onclick="movel();">左手!</button>
+<button onclick="mover();">右手!</button>
+
+
+<script src="three.min.js"></script>
+<style type="text/css">
+div#canvas-frame{
+  border: none;
+  cursor: pointer;
+  width: 1000px;
+  height: 600px;
+  background-color: #EEEEEE;
+}
+</style>
+<script>
+  var width, height;
+  var renderer; //レンダラー
+  function initThree() {
+    width = document.getElementById('canvas-frame').clientWidth;
+    height = document.getElementById('canvas-frame').clientHeight;
+    renderer = new THREE.WebGLRenderer({antialias: true});
+    renderer.setSize(width, height);
+    document.getElementById('canvas-frame').appendChild(renderer.domElement);
+    renderer.setClearColorHex(0xffffff, 1.0);
+    renderer.shadowMapEnabled = true; //影
+  }
+   var camera; //カメラ
+   function initCamera() {
+     camera = new THREE.PerspectiveCamera( 45 , width / height , 1 , 10000 );
+     camera.position.set(800, 0, 100);
+     camera.up.x = 0; camera.up.y = 0; camera.up.z = 1;
+     camera.lookAt( {x:0, y:0, z:0 } );
+   }
+   var scene; //シーン
+   function initScene() {scene = new THREE.Scene();}
+   var light, light2; //ライト
+   function initLight() {
+     light = new THREE.DirectionalLight(0xFFFFFF, 1.0, 0);
+     light.position.set(500, 50, 500); light.castShadow = true; //影
+     scene.add(light);
+     light2 = new THREE.AmbientLight(0x555555); scene.add(light2);
+   }
+  var func1 = function(u, v){
+            u = u * Math.PI; v = v * 2 * Math.PI;
+            var x = 60 * Math.sin(u) * Math.cos(v);
+            var y = 65 * Math.sin(u) * Math.sin(v); 
+            var z = 55 * Math.cos(u);
+            return new THREE.Vector3(x, y, z);}
+  var func2_1 = function(u, v){
+            u = u * Math.PI; v = v * 2 * Math.PI;
+            var x = 60 * Math.sin(u) * Math.cos(v);
+            var y = 50 * Math.sin(u) * Math.sin(v); 
+            var z = 70 * Math.cos(u);
+            return new THREE.Vector3(x, y, z);}
+var func2_2 = function(u, v){
+            u = u * Math.PI; v = v * 2 * Math.PI;
+            var x = 50 * Math.sin(u) * Math.cos(v);
+            var y = 42 * Math.sin(u) * Math.sin(v); 
+            var z = 58 * Math.cos(u);
+            return new THREE.Vector3(x, y, z);}      
+  var func3 = function(u, v){
+            u = u * Math.PI; v = v * 2 * Math.PI;
+            var x = 2 * Math.sin(u) * Math.cos(v);
+            var y = 20 * Math.sin(u) * Math.sin(v); 
+            var z = 15 * Math.cos(u);
+            return new THREE.Vector3(x, y, z);}
+  var func4_r = function(u, v){
+            u = u * Math.PI; v = v * 2 * Math.PI;
+            var x = 20 * Math.sin(u) * Math.cos(v);
+            var y = 15 * Math.sin(u) * Math.sin(v); 
+            var z = 40 * Math.cos(u);
+            return new THREE.Vector3(x, y, z);}
+  var func4_l = function(u, v){
+            u = u * Math.PI; v = v * 2 * Math.PI;
+            var x = 20 * Math.sin(u) * Math.cos(v);
+            var y = 15 * Math.sin(u) * Math.sin(v); 
+            var z = 40 * Math.cos(u);
+            return new THREE.Vector3(x, y, z);}
+  var func_m = function(u, v){
+            u = u * Math.PI; v = v * 2 * Math.PI;
+            var x = 25 * Math.sin(u) * Math.cos(v);
+            var y = 27 * Math.sin(u) * Math.sin(v); 
+            var z = 23 * Math.cos(u);
+            return new THREE.Vector3(x, y, z);}
+
+  var plane, face, body, body_white, rear, lear, rear_y, lear_y, 
+      reye, leye, mouth, mouth_sub1, rarm, larm, rleg, rleg, tail,
+      mouth_sub2, mouth_sub3;
+  function initObject(){   //物体
+    plane = new THREE.Mesh (  //床
+      new THREE.PlaneGeometry(500, 500), 
+      new THREE.MeshLambertMaterial({color: 0x999999}));
+    scene.add(plane); plane.position.set(0,5,-100); plane.receiveShadow = true;
+    body = new THREE.Mesh ( //体
+      new THREE.ParametricGeometry(func2_1, 64, 64, true),
+      new THREE.MeshLambertMaterial({color: 0x993300}));
+    scene.add(body); body.position.set(100,0,-10); body.castShadow = true;
+    body_white = new THREE.Mesh ( //体(白い部分)
+      new THREE.ParametricGeometry(func2_2, 64, 64, true),
+      new THREE.MeshLambertMaterial({color: 0xFFFFFF}));
+    scene.add(body_white); body_white.position.set(115,0,-10);
+    rarm = new THREE.Mesh ( //右腕
+      new THREE.ParametricGeometry(func4_r, 64, 64, true),
+      new THREE.MeshLambertMaterial({color: 0x993300}));
+    scene.add(rarm); rarm.position.set(100, 60, 10); 
+    rarm.rotation.set(-90, 120, 0); rarm.castShadow = true; 
+    larm = new THREE.Mesh ( //左腕
+      new THREE.ParametricGeometry(func4_l, 64, 64, true),
+      new THREE.MeshLambertMaterial({color: 0x993300}));
+    scene.add(larm); larm.position.set(100, -60, 10); 
+    larm.rotation.set(90, 120, 0); larm.castShadow = true;
+    rleg = new THREE.Mesh ( //右脚
+      new THREE.CylinderGeometry(24, 15, 55, 100),
+      new THREE.MeshLambertMaterial({color: 0x993300}));
+    scene.add(rleg); rleg.position.set(100, 22, -73);
+    rleg.rotation.set(121, 120, 0); rleg.castShadow = true; 
+    lleg = new THREE.Mesh ( //左脚
+      new THREE.CylinderGeometry(24, 15, 55, 100),
+      new THREE.MeshLambertMaterial({color: 0x993300}));
+    scene.add(lleg); lleg.position.set(100, -22, -73); 
+    lleg.rotation.set(146, 100, 0); lleg.castShadow = true;
+    face = new THREE.Mesh ( //顔
+      new THREE.ParametricGeometry(func1, 64, 64, true),
+      new THREE.MeshLambertMaterial({color: 0x993300}));
+    scene.add(face); face.position.set(100,0, 80); face.castShadow = true;
+    rear = new THREE.Mesh ( //右耳
+      new THREE.SphereGeometry(20, 20, 20), 
+      new THREE.MeshLambertMaterial({color: 0x993300})); 
+    scene.add(rear); rear.position.set(100, 65, 120); rear.castShadow = true;
+    lear = new THREE.Mesh ( //左耳
+      new THREE.SphereGeometry(20, 20, 20),
+      new THREE.MeshLambertMaterial({color: 0x993300})); 
+    scene.add(lear); lear.position.set(100, -65, 120); lear.castShadow = true;
+    rear = new THREE.Mesh ( //右耳(黄)
+      new THREE.SphereGeometry(15, 20, 20, 0, Math.PI*2, 0, Math.PI/2), 
+      new THREE.MeshLambertMaterial({color: 0xFFFF00})); 
+    scene.add(rear); rear.position.set(107, 63, 119);
+    rear.rotation.set(0, 0, 250)
+    lear = new THREE.Mesh ( //左耳(黄)
+      new THREE.SphereGeometry(15, 20, 20, 0, -Math.PI*2, -Math.PI/2, Math.PI/2), 
+      new THREE.MeshLambertMaterial({color: 0xFFFF00})); 
+    scene.add(lear); lear.position.set(107, -63, 119);
+    lear.rotation.set(0, 0, 250)
+    reye = new THREE.Mesh ( //右目
+      new THREE.SphereGeometry(10, 10, 10), 
+      new THREE.MeshLambertMaterial({color: 0x000000})); 
+    scene.add(reye); reye.position.set(150, 25, 80);
+    leye = new THREE.Mesh ( //左目
+      new THREE.SphereGeometry(10, 10, 10), 
+      new THREE.MeshLambertMaterial({color: 0x000000})); 
+    scene.add(leye); leye.position.set(150, -25, 80);      
+    mouth = new THREE.Mesh ( //口
+      new THREE.ParametricGeometry(func_m, 64, 64, true),
+      new THREE.MeshLambertMaterial({color: 0xFFFFFF}));
+    scene.add(mouth); mouth.position.set(140, 0, 65);
+    mouth_sub1 = new THREE.Mesh (//口1
+      new THREE.SphereGeometry(5, 5, 5), 
+      new THREE.MeshLambertMaterial({color: 0x000000})); 
+    scene.add(mouth_sub1); mouth_sub1.position.set(163, 0, 70);
+    mouth_sub2 = new THREE.Mesh (//口2
+      new THREE.TorusGeometry(8, 2, 50, 10, Math.PI/2), 
+      new THREE.MeshLambertMaterial({color: 0x000000})); 
+      scene.add(mouth_sub2); mouth_sub2.position.set(164, -6, 71);
+      mouth_sub2.rotation.set(0, -55, 100);
+    mouth_sub3 = new THREE.Mesh (//口3
+      new THREE.TorusGeometry(8, 2, 50, 10, Math.PI/2),
+      new THREE.MeshLambertMaterial({color: 0x000000})); 
+      scene.add(mouth_sub3); mouth_sub3.position.set(164, 6, 71);
+      mouth_sub3.rotation.set(0, 55, 700);
+    tail = new THREE.Mesh ( //しっぽ
+      new THREE.SphereGeometry(15, 15, 15), 
+      new THREE.MeshLambertMaterial({color: 0x993300})); 
+    scene.add(tail); tail.position.set(38, 0, -50); tail.castShadow = true;
+    
+}
+
+var t=0;
+var j = 0;
+var mr = 0;
+var ml = 0;
+function loop(){ //カメラワーク用
+    t+=0.3;
+    renderer.clear();
+     var y = Math.sin((t * Math.PI) / 180);
+     var x = Math.cos((t * Math.PI) / 180);
+    camera.position.set(500*x, 500*y, 100);
+  camera.lookAt( {x:0, y:0, z:0 } );
+  renderer.render(scene, camera);
+  window.requestAnimationFrame(loop);
+} 
+function jump(){
+  if(j%2==0){plane.position.set(0, 5, -150);}
+  else {plane.position.set(0, 5, -100);}
+  j++;
+}
+function mover(){
+  if(mr%2==0){rarm.position.set(100, 63, 30); 
+              rarm.rotation.set(90, 100, -100);}
+  else {rarm.position.set(100, 60, 10); 
+        rarm.rotation.set(-90, 120, 0);}
+  mr++;
+}
+function movel(){
+  if(ml%2==0){larm.position.set(100, -63, 30); 
+              larm.rotation.set(-90, 100, -100);}
+  else {larm.position.set(100, -60, 10); 
+        larm.rotation.set(90, 120, 0);}
+  ml++;
+}
+
+   function threeStart() {
+     initThree();
+     initCamera();
+     initScene();
+     initLight();
+     initObject();
+     loop();
+     jumpButton();
+     moverBottan();
+     movelBottan();
+     renderer.clear();  
+     renderer.render(scene, camera);
+   }
+
+   </script>
+   </head>
+   <body onload="threeStart();">
+   <div id="canvas-frame"></div>
+   </body>
+   </html>
